@@ -161,6 +161,75 @@ namespace AF.UnityUtilities
                 }
             }
         }
+        public static IEnumerable<TResult> XWise<TSource, TResult>(this IEnumerable<TSource> source, int x, Func<TSource[], TResult> resultSelector)
+        {
 
+            using (var it = source.GetEnumerator())
+            {
+                var items = new TSource[x];
+                var isDone = false;
+                while (!isDone)
+                {
+                    var itemCount = 0;
+                    for (var i = 0; i < x && !isDone; i++)
+                    {
+                        if(it.MoveNext())
+                        {
+                            itemCount++;
+                            items[i] = it.Current;
+                        } else
+                        {
+                            isDone = true;
+                        }
+                    }
+                    if (itemCount > 0)
+                    {
+                        yield return resultSelector(items);
+                    }
+                }
+            }
+        }
+
+        public static void Pairwise<TSource>(this IEnumerable<TSource> source, Action<TSource, TSource> resultSelector)
+        {
+            var pairs = source.Pairwise((a, b) =>
+            {
+                resultSelector(a, b);
+                return 0;
+            });
+            foreach(var p in pairs)
+            {
+                // force evaluation
+            }
+        }
+
+        public static IEnumerable<TResult> Pairwise<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TSource, TResult> resultSelector)
+        {
+            return source.XWise(2, items =>
+            {
+                return resultSelector(items[0], items[1]);
+            });
+        }
+
+        public static void Tripletwise<TSource>(this IEnumerable<TSource> source, Action<TSource, TSource, TSource> resultSelector)
+        {
+            var triples = source.Tripletwise((a, b, c) =>
+            {
+                resultSelector(a, b, c);
+                return 0;
+            });
+            foreach(var t in triples)
+            {
+                // force evaluation
+            }
+        }
+
+        public static IEnumerable<TResult> Tripletwise<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TSource, TSource, TResult> resultSelector)
+        {
+            return source.XWise(3, items =>
+            {
+                return resultSelector(items[0], items[1], items[2]);
+            });
+        }
     }
 }
